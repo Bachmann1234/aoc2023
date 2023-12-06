@@ -4,6 +4,7 @@ import (
 	"dev/mattbachmann/aoc2023/internal"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -105,6 +106,41 @@ func mapValue(value int, mapEntries []MapEntry) int {
 
 }
 
+func mapKey(key int, mapEntries []MapEntry) int {
+	for _, entry := range mapEntries {
+		if key >= entry.destinationRangeStart && key <= entry.destinationRangeStart+entry.rangeLength {
+			index := key - entry.destinationRangeStart
+			return entry.sourceRangeStart + index
+		}
+	}
+	return key
+}
+
+func seedToLocationRangeFast(almanac Almanac) int {
+	sort.Slice(almanac.humidityToLocation, func(i, j int) bool {
+		return almanac.humidityToLocation[i].destinationRangeStart < almanac.humidityToLocation[j].destinationRangeStart
+	})
+
+	for _, entry := range almanac.humidityToLocation {
+		for i := 0; i < entry.rangeLength; i++ {
+			location := entry.destinationRangeStart + i
+			humid := mapKey(location, almanac.humidityToLocation)
+			temperature := mapKey(humid, almanac.temperatureToHumidity)
+			light := mapKey(temperature, almanac.lightToTemperature)
+			water := mapKey(light, almanac.waterToLight)
+			fertilizer := mapKey(water, almanac.fertilizerToWater)
+			soil := mapKey(fertilizer, almanac.soilToFertilizer)
+			seed := mapKey(soil, almanac.seedToSoil)
+			for _, seedRange := range almanac.seedRanges {
+				if seed >= seedRange.start && seed <= seedRange.start+seedRange.length {
+					return location
+				}
+			}
+		}
+	}
+	return -1
+}
+
 func seedToLocationRange(almanac Almanac) (ret int) {
 	ret = math.MaxInt
 	values := make(chan []int, len(almanac.seedRanges))
@@ -155,5 +191,6 @@ func seedToLocation(almanac Almanac) (ret int) {
 func main() {
 	almanac := readAlmanac()
 	println(seedToLocation(almanac))
-	println(seedToLocationRange(almanac))
+	println(seedToLocationRangeFast(almanac))
+	//println(seedToLocationRange(almanac))
 }
