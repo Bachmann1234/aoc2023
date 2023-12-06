@@ -105,7 +105,8 @@ func mapValue(value int, mapEntries []MapEntry) int {
 
 }
 
-func seedToLocationRange(almanac Almanac) (ret []int) {
+func seedToLocationRange(almanac Almanac) (ret int) {
+	ret = math.MaxInt
 	values := make(chan []int, len(almanac.seedRanges))
 	for _, seedRange := range almanac.seedRanges {
 		seedRange := seedRange
@@ -126,13 +127,16 @@ func seedToLocationRange(almanac Almanac) (ret []int) {
 	}
 	for i := 0; i < len(almanac.seedRanges); i++ {
 		for _, v := range <-values {
-			ret = append(ret, v)
+			if v < ret {
+				ret = v
+			}
 		}
 	}
 	return ret
 }
 
-func seedToLocation(almanac Almanac) (ret []int) {
+func seedToLocation(almanac Almanac) (ret int) {
+	ret = math.MaxInt
 	for _, seed := range almanac.seeds {
 		soil := mapValue(seed, almanac.seedToSoil)
 		fertilizer := mapValue(soil, almanac.soilToFertilizer)
@@ -140,26 +144,16 @@ func seedToLocation(almanac Almanac) (ret []int) {
 		light := mapValue(water, almanac.waterToLight)
 		temp := mapValue(light, almanac.lightToTemperature)
 		humid := mapValue(temp, almanac.temperatureToHumidity)
-		ret = append(ret, mapValue(humid, almanac.humidityToLocation))
+		location := mapValue(humid, almanac.humidityToLocation)
+		if location < ret {
+			ret = location
+		}
 	}
 	return ret
 }
 
 func main() {
 	almanac := readAlmanac()
-	minLocation := math.MaxInt
-	for _, location := range seedToLocation(almanac) {
-		if location < minLocation {
-			minLocation = location
-		}
-	}
-	println(minLocation)
-
-	minLocation = math.MaxInt
-	for _, location := range seedToLocationRange(almanac) {
-		if location < minLocation {
-			minLocation = location
-		}
-	}
-	println(minLocation)
+	println(seedToLocation(almanac))
+	println(seedToLocationRange(almanac))
 }
