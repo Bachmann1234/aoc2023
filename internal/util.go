@@ -2,6 +2,7 @@ package internal
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -11,15 +12,25 @@ func Check(e error) {
 	}
 }
 
-func ReadFileToLines(path string) (ret []string) {
+func ParseInt(s string) int {
+	ret, err := strconv.Atoi(s)
+	Check(err)
+	return ret
+}
+
+func SplitFile(path string, sep string) (ret []string) {
 	data, err := os.ReadFile(path)
 	Check(err)
-	for _, line := range strings.Split(string(data), "\n") {
+	for _, line := range strings.Split(string(data), sep) {
 		if line != "" {
 			ret = append(ret, line)
 		}
 	}
 	return ret
+}
+
+func ReadFileToLines(path string) []string {
+	return SplitFile(path, "\n")
 }
 
 func ToSudoSet(items []string) (ret map[string]bool) {
