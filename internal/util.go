@@ -52,3 +52,12 @@ func (s *IntStack) Pop() int {
 	*s = (*s)[0 : len(*s)-1]
 	return ret
 }
+
+func IntSliceContains(slice []int, target int) bool {
+	for _, value := range slice {
+		if target == value {
+			return true
+		}
+	}
+	return false
+}
